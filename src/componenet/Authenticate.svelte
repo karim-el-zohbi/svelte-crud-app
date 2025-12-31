@@ -1,4 +1,6 @@
 <script>
+	import { authHandlers } from "../store/store";
+
 
 
     let email = "";
@@ -6,12 +8,31 @@
     let confirmPass = "";
     let error = false;
     let register = false;
+    let authenticatingState = false
 
-    function handleAuthenticate() {
+    async function handleAuthenticate() {
+        if(authenticatingState){
+            return
+        }
+        
         if(!email || !password ||  (register && !confirmPass) ){
             error =true
             return
         }
+        authenticatingState =true;
+        try{
+             if(!register){
+           await authHandlers.login(email,password);
+        }else {
+            await authHandlers.signup(email, password);
+        }
+        }catch(err){
+            console.log("there's an auth error")
+            error= true;
+            authenticatingState = false;
+        }
+
+       
     }
 
 
@@ -24,7 +45,7 @@ function handleRegister() {
 <form action="">
     <h1>{register ? 'Resgister' : "Login"}</h1>
     {#if error}
-    <p class="error">The information you have</p>
+    <p class="error">The information you have entered is incorrect</p>
     {/if}
     <label for="">
         <p class={email? "above" : "center"}>Email</p>
@@ -42,7 +63,13 @@ function handleRegister() {
         <input bind:value={confirmPass} type="password" placeholder="confirm password">
     </label>
     {/if}
-    <button type="button">Submit</button>
+    <button on:click={handleAuthenticate} type="button" class="submitBtn">
+        {#if authenticatingState}
+        <i class="fa-solid fa-spinner spin" ></i>
+        {:else}
+        Submit
+        {/if}
+    </button>
 </form>
 <div class="options">
     <p>or</p>
@@ -117,6 +144,8 @@ function handleRegister() {
         border-radius: 5px;
         cursor: pointer;
         font-size: 1rem;
+        display: grid;
+        place-items: center;
     }
 
     form button:hover{
@@ -149,6 +178,8 @@ function handleRegister() {
     .error{
         color: coral;
         font-size: 0.9rem;
+        text-align: center;
+
 
     }
     .options{
@@ -193,5 +224,17 @@ function handleRegister() {
     .options div p:last-of-type{
         color: cyan;
         cursor: pointer;
+    }
+
+    .spin{
+        animation: spin 2s infinite;
+    }
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to{
+            transform: rotate(360deg);
+        }
     }
     </style>
