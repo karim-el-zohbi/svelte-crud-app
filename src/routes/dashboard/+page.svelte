@@ -1,9 +1,17 @@
 <script>
+	import {  doc, setDoc } from "firebase/firestore";
+	import { db } from "../../lib/firebase/firebase";
+	import { authHandlers, authStore } from "../../store/store";
+    import TodoItem from "../../componenet/TodoItem.svelte";
 
 
     let todoList = [];
     let currTodo = "";
     let error = false;
+
+    authStore.subscribe(curr => {
+        todoList = curr.data.todos;
+    });
 
     function addTodo() {
         error = false;
@@ -28,17 +36,33 @@
         });
         todoList = newTodoList;
     }
+
+    async function saveTodos() {
+        try{
+            const userRef = doc(db, 'user', $authStore.user.uid)
+            await setDoc(userRef, 
+                {
+                    todos: todoList,
+               
+            },{merge: true});
+        }catch(err){
+            console.log("save your info")
+        }
+    }
 </script>
+{#if !$authStore.loading}
+
+
 
 <div class="mainContainer">
     <div class="headerContainer">
         <h1>Todo List</h1>
         <div class="headerButtons">
-        <button> 
+        <button on:click={saveTodos}> 
             <i class="fa-regular fa-floppy-disk"></i>
              <p> Save</p>
             </button>
-            <button>
+            <button on:click={authHandlers.logout}>
                 <i class="fa-solid fa-arrow-right-from-bracket"></i>
                 Logout
             </button>
@@ -52,13 +76,7 @@
         </p>
         {/if}
         {#each todoList as todo, index }
-        <div class="todo">
-            <p> {index +1}.{todo}</p>
-            <div class="actions">
-                <i on:click={() => editTodo(index)} on:keydown={() => {}} class="fa-regular fa-pen-to-square"></i>
-                <i on:click={() => removeTodo(index)} on:keydown={() => {}} class="fa-regular fa-trash-can"></i>
-            </div>
-            </div>
+       <TodoItem {todo} {index} {removeTodo} {editTodo}/>
         {/each}
     </main>
      <div class={"enterTodo" + (error ? 'errorBorder': "")}   >
@@ -67,7 +85,7 @@
     </div>
 
 </div>
-
+{/if}
 
 <style>
     .mainContainer{
@@ -129,21 +147,8 @@
         justify-content: space-between;
     }
 
-    .actions{
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        font-size: 1.3rem;
-    }
-
-    .actions i {
-        cursor: pointer;
-    }
-
-    .actions i:hover {
-        color: coral;
-    }
-
+   
+    
     .enterTodo{
         display: flex;
         align-items: stretch;

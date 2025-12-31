@@ -8,14 +8,18 @@
     let confirmPass = "";
     let error = false;
     let register = false;
-    let authenticatingState = true
+    let authenticatingState = false
 
     async function handleAuthenticate() {
-        authenticatingState =true;
+        if(authenticatingState){
+            return
+        }
+        
         if(!email || !password ||  (register && !confirmPass) ){
             error =true
             return
         }
+        authenticatingState =true;
         try{
              if(!register){
            await authHandlers.login(email,password);
@@ -25,6 +29,7 @@
         }catch(err){
             console.log("there's an auth error")
             error= true;
+            authenticatingState = false;
         }
 
        
@@ -40,7 +45,7 @@ function handleRegister() {
 <form action="">
     <h1>{register ? 'Resgister' : "Login"}</h1>
     {#if error}
-    <p class="error">The information you have</p>
+    <p class="error">The information you have entered is incorrect</p>
     {/if}
     <label for="">
         <p class={email? "above" : "center"}>Email</p>
@@ -58,7 +63,7 @@ function handleRegister() {
         <input bind:value={confirmPass} type="password" placeholder="confirm password">
     </label>
     {/if}
-    <button type="button" class="submitBtn">
+    <button on:click={handleAuthenticate} type="button" class="submitBtn">
         {#if authenticatingState}
         <i class="fa-solid fa-spinner spin" ></i>
         {:else}
@@ -173,6 +178,8 @@ function handleRegister() {
     .error{
         color: coral;
         font-size: 0.9rem;
+        text-align: center;
+
 
     }
     .options{
