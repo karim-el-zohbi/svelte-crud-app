@@ -4,48 +4,63 @@
 	import { authHandlers, authStore } from "../../store/store";
     import TodoItem from "../../componenet/TodoItem.svelte";
 
-
+    // component state variables
     let todoList = [];
     let currTodo = "";
     let error = false;
 
+    // subscribe to auth store to get user data
     authStore.subscribe(curr => {
         todoList = curr.data.todos;
     });
-
+    // function to add a new todo item
     function addTodo() {
+        // reset error state
         error = false;
+        // validate input
         if (!currTodo){
-            error = true
+            error = true;
+            return;
         }
+        // add new todo to the list
         todoList = [...todoList, currTodo]
         currTodo ="";
     }
-
+    // function to edit an existing todo item
     function editTodo(index) {
         let newTodoList = [...todoList].filter((val, i) => {
+            // filter out the todo at the specified index
             return i != index;
         });
+        // set current todo to the one being edited
         currTodo = todoList[index];
         todoList = newTodoList;
     }
-
+    // function to remove a todo item
     function removeTodo(index) {
          let newTodoList = [...todoList].filter((val, i) => {
+            // filter out the todo at the specified index
             return i != index;
         });
+        // update the todo list
         todoList = newTodoList;
     }
-
+    // function to save todos to Firestore
     async function saveTodos() {
         try{
+            // get user reference
             const userRef = doc(db, 'user', $authStore.user.uid)
+            // save updated todo list
             await setDoc(userRef, 
                 {
                     todos: todoList,
                
-            },{merge: true});
+            },
+            // merge with existing data
+            {merge: true});
+            
         }catch(err){
+            // handle save errors
             console.log("save your info")
         }
     }

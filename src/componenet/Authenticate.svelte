@@ -2,7 +2,7 @@
 	import { authHandlers } from "../store/store";
 
 
-
+    // component state variables
     let email = "";
     let password = "";
     let confirmPass = "";
@@ -10,23 +10,30 @@
     let register = false;
     let authenticatingState = false
 
+    // function to handle authentication (login/signup)
     async function handleAuthenticate() {
+        // prevent multiple submissions
         if(authenticatingState){
             return
         }
-        
+        // reset error state
         if(!email || !password ||  (register && !confirmPass) ){
             error =true
             return
         }
+        // check password match for registration
         authenticatingState =true;
+        
         try{
+            // decide between login and signup
              if(!register){
            await authHandlers.login(email,password);
         }else {
             await authHandlers.signup(email, password);
         }
+    
         }catch(err){
+            // handle authentication errors
             console.log("there's an auth error")
             error= true;
             authenticatingState = false;
@@ -35,7 +42,7 @@
        
     }
 
-
+// function to toggle between login and registration modes
 function handleRegister() {
     register = !register;
 }
